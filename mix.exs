@@ -11,8 +11,8 @@ defmodule Feedly.MixProject do
       description: description(),
       package: package(),
       docs: docs(),
-      source_url: "https://github.com/hunsazk/feedly",
-      homepage_url: "https://github.com/hunsazk/feedly"
+      source_url: "https://github.com/osintowl/feedly",
+      homepage_url: "https://github.com/osintowl/feedly"
     ]
   end
 
@@ -48,9 +48,9 @@ defmodule Feedly.MixProject do
       files: ~w(lib .formatter.exs mix.exs README.md LICENSE),
       licenses: ["BSD-3-Clause"],
       links: %{
-        "GitHub" => "https://github.com/hunsazk/feedly"
+        "GitHub" => "https://github.com/osintowl/feedly"
       },
-      maintainers: ["hunsazk"]
+      maintainers: ["osintowl"]
     ]
   end
 
@@ -58,7 +58,7 @@ defmodule Feedly.MixProject do
     [
       main: "Feedly",
       extras: ["README.md"],
-      source_url: "https://github.com/hunsazk/feedly"
+      source_url: "https://github.com/osintowl/feedly"
     ]
   end
 end
