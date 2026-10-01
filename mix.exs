@@ -4,7 +4,7 @@ defmodule Feedly.MixProject do
   def project do
     [
       app: :feedly,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -26,7 +26,7 @@ defmodule Feedly.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:req, "~> 0.5"},
+      {:req, "~> 0.5 or ~> 0.6 or ~> 0.7"},
       {:jason, "~> 1.4"},
       {:nimble_options, "~> 1.1"},
       {:typed_struct, "~> 0.3"},
