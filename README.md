@@ -18,7 +18,7 @@ Add `feedly` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:feedly, "~> 0.1.0"}
+    {:feedly, "~> 1.0"}
   ]
 end
 ```
@@ -26,17 +26,18 @@ end
 ## Quick Start
 
 ```elixir
-# Create a client
-client = Feedly.client(token: "your_api_token")
+client = Feedly.client(token: System.fetch_env!("FEEDLY_TOKEN"))
 
-# Collect articles from a stream
-{:ok, %{items: articles, continuation: cont}} = 
-  Feedly.stream_contents(client, 
-    stream_id: "enterprise/feedly/category/your-stream-id",
+# Confirms the token. profile is the Feedly account map.
+{:ok, profile} = Feedly.API.Profile.get(client)
+
+# Collect articles from a folder, board, or AI Feed.
+{:ok, %{items: articles}} =
+  Feedly.API.Streams.get_contents(client,
+    stream_id: "enterprise/your-team/category/your-stream-id",
     count: 50
   )
 
-# Search for articles
 query = %{
   layers: [
     %{type: "matches", parts: [%{text: "ransomware"}], salience: "about"},
@@ -44,10 +45,9 @@ query = %{
   ]
 }
 
-{:ok, results} = Feedly.search(client, query, count: 100)
+{:ok, %{items: results}} = Feedly.API.Search.query(client, query, count: 100)
 
-# Stream all articles with automatic pagination
-Feedly.stream_all(client, stream_id: "...")
+Feedly.API.Streams.stream_all(client, stream_id: "enterprise/your-team/category/your-stream-id")
 |> Stream.take(1000)
 |> Enum.each(&process_article/1)
 ```
@@ -117,16 +117,16 @@ iocs = Feedly.API.ThreatIntel.IoCs.extract_from_articles(result["items"])
 
 ```elixir
 # List all boards
-{:ok, boards} = Feedly.list_boards(client)
+{:ok, boards} = Feedly.API.Boards.list(client)
 
 # Add articles to a board
-{:ok, _} = Feedly.add_to_board(client, "board_id", ["entry_id_1", "entry_id_2"])
+{:ok, _} = Feedly.API.Boards.add_articles(client, "board_id", ["entry_id_1", "entry_id_2"])
 
 # List folders
-{:ok, folders} = Feedly.list_folders(client)
+{:ok, folders} = Feedly.API.Folders.list(client)
 
 # Get AI Feeds
-{:ok, %{"enterpriseAlerts" => alerts}} = Feedly.list_ai_feeds(client)
+{:ok, %{"enterpriseAlerts" => alerts}} = Feedly.API.AIFeeds.list(client)
 ```
 
 ## Webhooks
@@ -140,13 +140,13 @@ webhook = %{
   streamId: "enterprise/feedly/tag/board-id"
 }
 
-{:ok, _} = Feedly.create_webhook(client, webhook)
+{:ok, _} = Feedly.API.Webhooks.create_or_update(client, webhook)
 
 # List webhooks
-{:ok, webhooks} = Feedly.list_webhooks(client)
+{:ok, webhooks} = Feedly.API.Webhooks.list(client)
 
 # Delete webhook
-{:ok, _} = Feedly.delete_webhook(client, "webhook_id")
+{:ok, _} = Feedly.API.Webhooks.delete(client, "webhook_id")
 ```
 
 ## API Modules
@@ -199,7 +199,7 @@ Feedly API has a limit of 100,000 requests per month. The client automatically:
 The client provides structured error types:
 
 ```elixir
-case Feedly.stream_contents(client, stream_id: "invalid") do
+case Feedly.API.Streams.get_contents(client, stream_id: "invalid") do
   {:ok, result} -> 
     # Process result
     
@@ -230,5 +230,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT License - see LICENSE file for details.
+BSD 3-Clause License - see LICENSE file for details.
 

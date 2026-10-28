@@ -18,7 +18,7 @@ defmodule Feedly.Client do
   @doc """
   Makes a POST request to the Feedly API.
   """
-  @spec post(Config.t(), String.t(), map(), keyword()) :: response()
+  @spec post(Config.t(), String.t(), map() | list(), keyword()) :: response()
   def post(%Config{} = config, path, body, opts \\ []) do
     opts = Keyword.put(opts, :json, body)
     request(config, :post, path, opts)
@@ -27,7 +27,7 @@ defmodule Feedly.Client do
   @doc """
   Makes a PUT request to the Feedly API.
   """
-  @spec put(Config.t(), String.t(), map(), keyword()) :: response()
+  @spec put(Config.t(), String.t(), map() | list(), keyword()) :: response()
   def put(%Config{} = config, path, body, opts \\ []) do
     opts = Keyword.put(opts, :json, body)
     request(config, :put, path, opts)
@@ -49,13 +49,19 @@ defmodule Feedly.Client do
     req_opts = [
       method: method,
       url: url,
-      headers: build_headers(config),
-      params: params,
+      headers: build_headers(config, json != nil),
+      params: stringify_params(params),
       receive_timeout: config.timeout,
       retry: :transient,
       max_retries: config.max_retries,
-      retry_delay: fn attempt -> config.retry_delay * attempt end
+      retry_delay: fn attempt -> config.retry_delay * (attempt + 1) end
     ]
+
+    req_opts =
+      case config.adapter do
+        nil -> req_opts
+        adapter -> Keyword.put(req_opts, :adapter, adapter)
+      end
 
     req_opts =
       if json do
@@ -97,11 +103,25 @@ defmodule Feedly.Client do
     "#{base_url}/#{path}"
   end
 
-  defp build_headers(%Config{token: token}) do
-    [
+  defp build_headers(%Config{token: token}, has_body) do
+    headers = [
       {"authorization", "Bearer #{token}"},
-      {"content-type", "application/json"},
       {"accept", "application/json"}
     ]
+
+    if has_body do
+      [{"content-type", "application/json"} | headers]
+    else
+      headers
+    end
+  end
+
+  @doc false
+  def encode_path(id) when is_binary(id) do
+    URI.encode(id, &URI.char_unreserved?/1)
+  end
+
+  defp stringify_params(params) do
+    Map.new(params, fn {key, value} -> {key, to_string(value)} end)
   end
 end

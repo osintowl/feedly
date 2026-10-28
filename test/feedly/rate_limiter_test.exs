@@ -31,8 +31,32 @@ defmodule Feedly.RateLimiterTest do
       assert rate_info.count == 57
     end
 
+    test "parses Req header lists" do
+      headers = %{
+        "x-ratelimit-count" => ["57"],
+        "x-ratelimit-limit" => ["100000"],
+        "x-ratelimit-reset" => ["23841"]
+      }
+
+      assert RateLimiter.parse_headers(headers) == %{
+               count: 57,
+               limit: 100_000,
+               reset_in: 23_841
+             }
+    end
+
     test "returns nil when headers are missing" do
       assert RateLimiter.parse_headers(%{}) == nil
+    end
+
+    test "returns nil when a header is not an integer" do
+      headers = %{
+        "x-ratelimit-count" => ["nope"],
+        "x-ratelimit-limit" => ["100000"],
+        "x-ratelimit-reset" => ["23841"]
+      }
+
+      assert RateLimiter.parse_headers(headers) == nil
     end
   end
 

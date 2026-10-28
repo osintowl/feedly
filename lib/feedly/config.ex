@@ -8,14 +8,16 @@ defmodule Feedly.Config do
           base_url: String.t(),
           timeout: pos_integer(),
           max_retries: non_neg_integer(),
-          retry_delay: pos_integer()
+          retry_delay: pos_integer(),
+          adapter: module() | nil
         }
 
   defstruct token: nil,
             base_url: "https://api.feedly.com/v3",
             timeout: 30_000,
             max_retries: 3,
-            retry_delay: 1_000
+            retry_delay: 1_000,
+            adapter: nil
 
   @doc """
   Creates a new configuration struct.
@@ -27,6 +29,7 @@ defmodule Feedly.Config do
     * `:timeout` - Request timeout in milliseconds (default: 30000)
     * `:max_retries` - Maximum number of retries on failure (default: 3)
     * `:retry_delay` - Delay between retries in milliseconds (default: 1000)
+    * `:adapter` - Req adapter module. Defaults to Req's Finch adapter. Pass a module with `run/1` to stub HTTP in tests.
 
   ## Examples
 
@@ -35,15 +38,20 @@ defmodule Feedly.Config do
 
   """
   @spec new(keyword()) :: t()
-  def new(opts) do
-    token = Keyword.fetch!(opts, :token)
+  def new(opts) when is_list(opts) do
+    token = Keyword.get(opts, :token)
+
+    unless is_binary(token) and byte_size(token) > 0 do
+      raise ArgumentError, "Feedly client requires a non-empty :token"
+    end
 
     %__MODULE__{
       token: token,
       base_url: Keyword.get(opts, :base_url, "https://api.feedly.com/v3"),
       timeout: Keyword.get(opts, :timeout, 30_000),
       max_retries: Keyword.get(opts, :max_retries, 3),
-      retry_delay: Keyword.get(opts, :retry_delay, 1_000)
+      retry_delay: Keyword.get(opts, :retry_delay, 1_000),
+      adapter: Keyword.get(opts, :adapter)
     }
   end
 

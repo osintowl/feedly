@@ -21,14 +21,10 @@ defmodule Feedly.RateLimiter do
   """
   @spec parse_headers(map()) :: rate_info() | nil
   def parse_headers(headers) do
-    with count when not is_nil(count) <- get_header(headers, "x-ratelimit-count"),
-         limit when not is_nil(limit) <- get_header(headers, "x-ratelimit-limit"),
-         reset when not is_nil(reset) <- get_header(headers, "x-ratelimit-reset") do
-      %{
-        count: String.to_integer(count),
-        limit: String.to_integer(limit),
-        reset_in: String.to_integer(reset)
-      }
+    with count when is_integer(count) <- header_integer(headers, "x-ratelimit-count"),
+         limit when is_integer(limit) <- header_integer(headers, "x-ratelimit-limit"),
+         reset when is_integer(reset) <- header_integer(headers, "x-ratelimit-reset") do
+      %{count: count, limit: limit, reset_in: reset}
     else
       _ -> nil
     end
@@ -67,7 +63,24 @@ defmodule Feedly.RateLimiter do
     backoff_delay(rate_info) > 0
   end
 
-  defp get_header(headers, key) do
-    headers[key] || headers[String.downcase(key)]
+  defp header_integer(headers, key) do
+    case header_value(headers, key) do
+      nil ->
+        nil
+
+      value ->
+        case Integer.parse(value) do
+          {int, ""} -> int
+          _ -> nil
+        end
+    end
+  end
+
+  defp header_value(headers, key) do
+    case headers[key] || headers[String.downcase(key)] do
+      [value | _] when is_binary(value) -> value
+      value when is_binary(value) -> value
+      _ -> nil
+    end
   end
 end

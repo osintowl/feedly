@@ -55,7 +55,7 @@ defmodule Feedly.API.ThreatIntel.CVEs do
         params
       end
 
-    Client.get(config, "/entities/#{URI.encode_www_form(entity_id)}", params: params)
+    Client.get(config, "/entities/#{Client.encode_path(entity_id)}", params: params)
   end
 
   @doc """
@@ -83,7 +83,7 @@ defmodule Feedly.API.ThreatIntel.CVEs do
   @spec timeline(Config.t(), String.t()) :: {:ok, list(map())} | {:error, term()}
   def timeline(%Config{} = config, cve_id) do
     entity_id = build_entity_id(cve_id)
-    Client.get(config, "/entities/#{URI.encode_www_form(entity_id)}/timeline")
+    Client.get(config, "/entities/#{Client.encode_path(entity_id)}/timeline")
   end
 
   @doc """
@@ -121,6 +121,7 @@ defmodule Feedly.API.ThreatIntel.CVEs do
     Client.post(config, "/dashboards/vulnerability", query_body)
   end
 
+  defp build_entity_id("vulnerability/m/entity/" <> _ = id), do: id
   defp build_entity_id("CVE-" <> _ = cve_id), do: "vulnerability/m/entity/#{cve_id}"
   defp build_entity_id(cve_id), do: "vulnerability/m/entity/CVE-#{cve_id}"
 end

@@ -16,7 +16,7 @@ defmodule Feedly.API.Articles do
   """
   @spec get(Config.t(), String.t()) :: {:ok, Article.t()} | {:error, term()}
   def get(%Config{} = config, entry_id) do
-    with {:ok, response} <- Client.get(config, "/entries/#{URI.encode_www_form(entry_id)}") do
+    with {:ok, response} <- Client.get(config, "/entries/#{Client.encode_path(entry_id)}") do
       {:ok, Article.from_api(response)}
     end
   end

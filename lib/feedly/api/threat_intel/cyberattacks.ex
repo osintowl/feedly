@@ -67,6 +67,6 @@ defmodule Feedly.API.ThreatIntel.Cyberattacks do
   """
   @spec get(Config.t(), String.t()) :: {:ok, map()} | {:error, term()}
   def get(%Config{} = config, attack_id) do
-    Client.get(config, "/dashboards/cyberattacks/#{URI.encode_www_form(attack_id)}")
+    Client.get(config, "/dashboards/cyberattacks/#{Client.encode_path(attack_id)}")
   end
 end

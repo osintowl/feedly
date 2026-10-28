@@ -7,26 +7,26 @@ defmodule Feedly do
 
   ## Quick Start
 
-      # Create a client
-      client = Feedly.client(token: "your_api_token")
+      client = Feedly.client(token: System.fetch_env!("FEEDLY_TOKEN"))
 
-      # Collect articles from a stream
-      {:ok, result} = Feedly.Streams.get_contents(client, 
-        stream_id: "enterprise/feedly/category/...",
-        count: 50
-      )
+      {:ok, profile} = Feedly.API.Profile.get(client)
 
-      # Search for articles
+      {:ok, %{items: articles}} =
+        Feedly.API.Streams.get_contents(client,
+          stream_id: "enterprise/feedly/category/...",
+          count: 50
+        )
+
       query = %{
         layers: [
           %{type: "matches", parts: [%{text: "ransomware"}], salience: "about"},
           %{type: "language", languages: ["en"]}
         ]
       }
-      {:ok, results} = Feedly.Search.query(client, query)
 
-      # Stream all articles with automatic pagination
-      Feedly.Streams.stream_all(client, stream_id: "...")
+      {:ok, %{items: results}} = Feedly.API.Search.query(client, query)
+
+      Feedly.API.Streams.stream_all(client, stream_id: "...")
       |> Stream.take(1000)
       |> Enum.to_list()
 
@@ -122,7 +122,7 @@ defmodule Feedly do
 
   """
   @spec client(keyword()) :: Config.t()
-  def client(opts) do
+  def client(opts \\ []) when is_list(opts) do
     Config.new(opts)
   end
 end

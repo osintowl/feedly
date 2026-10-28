@@ -66,11 +66,11 @@ defmodule Feedly.Pagination do
   @doc """
   Creates a stream that automatically fetches all pages.
 
+  A failed page raises `Feedly.Error` instead of ending the stream early.
+
   ## Examples
 
-      Feedly.Pagination.stream(client, fn client, params ->
-        Feedly.API.Streams.get_contents(client, stream_id, params)
-      end)
+      Feedly.API.Streams.stream_all(client, stream_id: stream_id)
       |> Stream.take(1000)
       |> Enum.to_list()
 
@@ -96,7 +96,7 @@ defmodule Feedly.Pagination do
 
           case fetch_fn.(client, params) do
             {:ok, %{items: items, continuation: next_continuation}} when is_list(items) ->
-              if next_continuation && length(items) > 0 do
+              if is_binary(next_continuation) and next_continuation != "" and items != [] do
                 {items, {client, next_continuation, opts}}
               else
                 {items, :done}
@@ -105,16 +105,18 @@ defmodule Feedly.Pagination do
             {:ok, %{items: items}} when is_list(items) ->
               {items, :done}
 
-            {:error, _reason} ->
-              {:halt, :done}
+            {:error, %Feedly.Error{} = error} ->
+              raise error
 
-            _ ->
-              {:halt, :done}
+            {:error, reason} ->
+              raise Feedly.Error.new(:unknown, "pagination failed: #{inspect(reason)}")
+
+            other ->
+              raise Feedly.Error.new(:unknown, "pagination failed: #{inspect(other)}")
           end
       end,
       fn _ -> :ok end
     )
-    |> Stream.flat_map(& &1)
   end
 
   @doc """

@@ -55,7 +55,7 @@ defmodule Feedly.API.ThreatIntel.ThreatActors do
         params
       end
 
-    Client.get(config, "/entities/#{URI.encode_www_form(entity_id)}", params: params)
+    Client.get(config, "/entities/#{Client.encode_path(entity_id)}", params: params)
   end
 
   @doc """
@@ -69,7 +69,7 @@ defmodule Feedly.API.ThreatIntel.ThreatActors do
   @spec relationships(Config.t(), String.t()) :: {:ok, map()} | {:error, term()}
   def relationships(%Config{} = config, actor_id) do
     entity_id = build_entity_id(actor_id)
-    Client.get(config, "/entities/#{URI.encode_www_form(entity_id)}/relationships")
+    Client.get(config, "/entities/#{Client.encode_path(entity_id)}/relationships")
   end
 
   defp build_entity_id("nlp/f/entity/gz:ta:" <> _ = id), do: id

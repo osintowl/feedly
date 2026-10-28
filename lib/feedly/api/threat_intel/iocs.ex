@@ -32,7 +32,7 @@ defmodule Feedly.API.ThreatIntel.IoCs do
       opts
       |> Keyword.delete(:stream_id)
       |> Pagination.build_params()
-      |> Map.put(:streamId, URI.encode_www_form(stream_id))
+      |> Map.put(:streamId, stream_id)
 
     Client.get(config, "/streams/contents", params: params)
   end
@@ -60,7 +60,7 @@ defmodule Feedly.API.ThreatIntel.IoCs do
         params
       end
 
-    Client.get(config, "/entities/#{URI.encode_www_form(ioc_id)}", params: params)
+    Client.get(config, "/entities/#{Client.encode_path(ioc_id)}", params: params)
   end
 
   @doc """
@@ -68,19 +68,22 @@ defmodule Feedly.API.ThreatIntel.IoCs do
 
   Returns a flat list of all IoCs with their types and contexts.
   """
-  @spec extract_from_articles(list(map())) :: list(map())
+  @spec extract_from_articles(list(map() | Feedly.Schemas.Article.t())) :: list(map())
   def extract_from_articles(articles) when is_list(articles) do
-    articles
-    |> Enum.flat_map(fn article ->
-      case article["indicatorsOfCompromise"] do
-        %{"mentions" => mentions} when is_list(mentions) ->
-          Enum.map(mentions, fn ioc ->
-            Map.put(ioc, "article_id", article["id"])
-          end)
-
-        _ ->
-          []
-      end
-    end)
+    Enum.flat_map(articles, &extract_from_article/1)
   end
+
+  defp extract_from_article(%Feedly.Schemas.Article{} = article) do
+    mentions(article.indicators_of_compromise, article.id)
+  end
+
+  defp extract_from_article(article) when is_map(article) do
+    mentions(article["indicatorsOfCompromise"], article["id"])
+  end
+
+  defp mentions(%{"mentions" => mentions}, article_id) when is_list(mentions) do
+    Enum.map(mentions, &Map.put(&1, "article_id", article_id))
+  end
+
+  defp mentions(_, _), do: []
 end

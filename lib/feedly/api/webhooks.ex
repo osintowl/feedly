@@ -63,6 +63,6 @@ defmodule Feedly.API.Webhooks do
   """
   @spec delete(Config.t(), String.t()) :: {:ok, term()} | {:error, term()}
   def delete(%Config{} = config, webhook_id) do
-    Client.delete(config, "/webhooks/#{URI.encode_www_form(webhook_id)}")
+    Client.delete(config, "/webhooks/#{Client.encode_path(webhook_id)}")
   end
 end

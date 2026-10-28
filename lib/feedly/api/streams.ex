@@ -35,7 +35,7 @@ defmodule Feedly.API.Streams do
       opts
       |> Keyword.delete(:stream_id)
       |> Pagination.build_params()
-      |> Map.put(:streamId, URI.encode_www_form(stream_id))
+      |> Map.put(:streamId, stream_id)
       |> Map.put(:includeAiActions, Keyword.get(opts, :include_ai_actions, true))
       |> Map.put(:similar, Keyword.get(opts, :similar, true))
 

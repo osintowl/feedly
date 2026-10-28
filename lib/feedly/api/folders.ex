@@ -1,6 +1,6 @@
 defmodule Feedly.API.Folders do
   @moduledoc """
-  API for team folders (categories).
+  API for team folders.
   """
 
   alias Feedly.{Client, Config}
@@ -28,6 +28,6 @@ defmodule Feedly.API.Folders do
         params
       end
 
-    Client.get(config, "/categories", params: params)
+    Client.get(config, "/enterprise/collections", params: params)
   end
 end

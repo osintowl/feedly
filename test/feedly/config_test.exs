@@ -24,8 +24,14 @@ defmodule Feedly.ConfigTest do
     end
 
     test "raises when token is missing" do
-      assert_raise KeyError, fn ->
+      assert_raise ArgumentError, ~r/token/, fn ->
         Config.new([])
+      end
+    end
+
+    test "raises when token is empty" do
+      assert_raise ArgumentError, ~r/token/, fn ->
+        Config.new(token: "")
       end
     end
   end
