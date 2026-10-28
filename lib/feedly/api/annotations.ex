@@ -28,10 +28,11 @@ defmodule Feedly.API.Annotations do
         comment: "Important finding"
       }
 
-      {:ok, _} = Feedly.API.Annotations.create(client, annotation)
+      {:ok, _, _rate} = Feedly.API.Annotations.create(client, annotation)
 
   """
-  @spec create(Config.t(), map()) :: {:ok, term()} | {:error, term()}
+  @spec create(Config.t(), map()) ::
+          {:ok, term(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def create(%Config{} = config, annotation) do
     Client.post(config, "/annotations", annotation)
   end

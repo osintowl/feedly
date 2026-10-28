@@ -14,10 +14,11 @@ defmodule Feedly.API.Folders do
 
   ## Examples
 
-      {:ok, folders} = Feedly.API.Folders.list(client)
+      {:ok, folders, _rate} = Feedly.API.Folders.list(client)
 
   """
-  @spec list(Config.t(), keyword()) :: {:ok, list(map())} | {:error, term()}
+  @spec list(Config.t(), keyword()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def list(%Config{} = config, opts \\ []) do
     params = %{}
 

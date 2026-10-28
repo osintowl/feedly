@@ -1,6 +1,10 @@
 defmodule Feedly.RateLimiter do
   @moduledoc """
-  Rate limiting information and backoff handling for Feedly API.
+  Rate limit information from Feedly response headers.
+
+  API calls return this as the third element of a success tuple,
+  `{:ok, body, rate_info}`, and as `rate_info` on `Feedly.Error`.
+  `parse_headers/1` builds the same map from a raw header map.
   """
 
   @type rate_info :: %{

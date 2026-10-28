@@ -15,10 +15,11 @@ defmodule Feedly.API.ThreatIntel.ThreatActors do
 
   ## Examples
 
-      {:ok, actors} = Feedly.API.ThreatIntel.ThreatActors.trending(client)
+      {:ok, actors, _rate} = Feedly.API.ThreatIntel.ThreatActors.trending(client)
 
   """
-  @spec trending(Config.t(), keyword()) :: {:ok, list(map())} | {:error, term()}
+  @spec trending(Config.t(), keyword()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def trending(%Config{} = config, opts \\ []) do
     params = %{
       count: Keyword.get(opts, :count, 20)
@@ -39,10 +40,11 @@ defmodule Feedly.API.ThreatIntel.ThreatActors do
 
   ## Examples
 
-      {:ok, actor} = Feedly.API.ThreatIntel.ThreatActors.get(client, "gz:ta:68391641-859f-4a9a-9a1e-3e5cf71ec376")
+      {:ok, actor, _rate} = Feedly.API.ThreatIntel.ThreatActors.get(client, "gz:ta:68391641-859f-4a9a-9a1e-3e5cf71ec376")
 
   """
-  @spec get(Config.t(), String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec get(Config.t(), String.t(), keyword()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def get(%Config{} = config, actor_id, opts \\ []) do
     entity_id = build_entity_id(actor_id)
 
@@ -63,10 +65,11 @@ defmodule Feedly.API.ThreatIntel.ThreatActors do
 
   ## Examples
 
-      {:ok, relationships} = Feedly.API.ThreatIntel.ThreatActors.relationships(client, "gz:ta:...")
+      {:ok, relationships, _rate} = Feedly.API.ThreatIntel.ThreatActors.relationships(client, "gz:ta:...")
 
   """
-  @spec relationships(Config.t(), String.t()) :: {:ok, map()} | {:error, term()}
+  @spec relationships(Config.t(), String.t()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def relationships(%Config{} = config, actor_id) do
     entity_id = build_entity_id(actor_id)
     Client.get(config, "/entities/#{Client.encode_path(entity_id)}/relationships")

@@ -5,13 +5,17 @@ defmodule Feedly do
   Feedly's API is an easy-to-integrate REST API that allows you to automate 
   workflows to quickly share intelligence with leadership and operations teams.
 
+  Successful calls return `{:ok, body, rate_info}`. `rate_info` is a
+  `t:Feedly.RateLimiter.rate_info/0` or `nil`.
+
   ## Quick Start
 
       client = Feedly.client(token: System.fetch_env!("FEEDLY_TOKEN"))
 
-      {:ok, profile} = Feedly.API.Profile.get(client)
+      {:ok, profile, rate} = Feedly.API.Profile.get(client)
+      # rate => %{count: 10005, limit: 100000, reset_in: 1818103}
 
-      {:ok, %{items: articles}} =
+      {:ok, %{items: articles}, _rate} =
         Feedly.API.Streams.get_contents(client,
           stream_id: "enterprise/feedly/category/...",
           count: 50
@@ -24,7 +28,7 @@ defmodule Feedly do
         ]
       }
 
-      {:ok, %{items: results}} = Feedly.API.Search.query(client, query)
+      {:ok, %{items: results}, _rate} = Feedly.API.Search.query(client, query)
 
       Feedly.API.Streams.stream_all(client, stream_id: "...")
       |> Stream.take(1000)

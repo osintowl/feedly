@@ -5,7 +5,10 @@ defmodule Feedly.Client do
 
   alias Feedly.{Config, Error, RateLimiter}
 
-  @type response :: {:ok, term()} | {:error, Error.t()}
+  @type response(body) ::
+          {:ok, body, RateLimiter.rate_info() | nil} | {:error, Error.t()}
+
+  @type response :: response(term())
 
   @doc """
   Makes a GET request to the Feedly API.
@@ -74,26 +77,34 @@ defmodule Feedly.Client do
       {:ok, %Req.Response{status: status, body: body, headers: headers}}
       when status in 200..299 ->
         rate_info = RateLimiter.parse_headers(headers)
+        warn_if_near_limit(rate_info)
+        {:ok, body, rate_info}
 
-        if rate_info && RateLimiter.should_wait?(rate_info) do
-          # Log warning about approaching rate limit
-          require Logger
+      {:ok, %Req.Response{status: status, body: body, headers: headers}} ->
+        error = %{
+          Error.from_response(status, body)
+          | rate_info: RateLimiter.parse_headers(headers)
+        }
 
-          Logger.warning(
-            "Feedly API rate limit approaching: #{rate_info.count}/#{rate_info.limit}, resets in #{rate_info.reset_in}s"
-          )
-        end
-
-        {:ok, body}
-
-      {:ok, %Req.Response{status: status, body: body}} ->
-        {:error, Error.from_response(status, body)}
+        {:error, error}
 
       {:error, %Req.TransportError{reason: reason}} ->
         {:error, Error.new(:network_error, "Network error: #{inspect(reason)}")}
 
       {:error, reason} ->
         {:error, Error.new(:unknown, "Request failed: #{inspect(reason)}")}
+    end
+  end
+
+  defp warn_if_near_limit(nil), do: :ok
+
+  defp warn_if_near_limit(rate_info) do
+    if RateLimiter.should_wait?(rate_info) do
+      require Logger
+
+      Logger.warning(
+        "Feedly API rate limit approaching: #{rate_info.count}/#{rate_info.limit}, resets in #{rate_info.reset_in}s"
+      )
     end
   end
 

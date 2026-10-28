@@ -12,11 +12,12 @@ defmodule Feedly.API.AIFeeds do
 
   ## Examples
 
-      {:ok, %{"userAlerts" => user_alerts, "enterpriseAlerts" => enterprise_alerts}} = 
+      {:ok, %{"userAlerts" => user_alerts, "enterpriseAlerts" => enterprise_alerts}, _rate} =
         Feedly.API.AIFeeds.list(client)
 
   """
-  @spec list(Config.t()) :: {:ok, map()} | {:error, term()}
+  @spec list(Config.t()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def list(%Config{} = config) do
     Client.get(config, "/alerts")
   end

@@ -77,7 +77,9 @@ defmodule Feedly.Pagination do
   """
   @spec stream(
           term(),
-          (term(), map() -> {:ok, paginated_response()} | {:error, term()}),
+          (term(), map() ->
+             {:ok, paginated_response(), Feedly.RateLimiter.rate_info() | nil}
+             | {:error, term()}),
           page_opts()
         ) ::
           Enumerable.t()
@@ -95,12 +97,15 @@ defmodule Feedly.Pagination do
             |> build_params()
 
           case fetch_fn.(client, params) do
+            {:ok, %{items: items, continuation: next_continuation}, _rate}
+            when is_list(items) ->
+              next_page(items, next_continuation, client, opts)
+
             {:ok, %{items: items, continuation: next_continuation}} when is_list(items) ->
-              if is_binary(next_continuation) and next_continuation != "" and items != [] do
-                {items, {client, next_continuation, opts}}
-              else
-                {items, :done}
-              end
+              next_page(items, next_continuation, client, opts)
+
+            {:ok, %{items: items}, _rate} when is_list(items) ->
+              {items, :done}
 
             {:ok, %{items: items}} when is_list(items) ->
               {items, :done}
@@ -130,6 +135,14 @@ defmodule Feedly.Pagination do
       id: Map.get(response, "id"),
       updated: Map.get(response, "updated")
     }
+  end
+
+  defp next_page(items, next_continuation, client, opts) do
+    if is_binary(next_continuation) and next_continuation != "" and items != [] do
+      {items, {client, next_continuation, opts}}
+    else
+      {items, :done}
+    end
   end
 
   defp to_epoch_ms(%DateTime{} = dt) do

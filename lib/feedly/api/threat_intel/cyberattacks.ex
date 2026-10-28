@@ -30,10 +30,11 @@ defmodule Feedly.API.ThreatIntel.Cyberattacks do
         count: 50
       }
 
-      {:ok, results} = Feedly.API.ThreatIntel.Cyberattacks.query(client, query)
+      {:ok, results, _rate} = Feedly.API.ThreatIntel.Cyberattacks.query(client, query)
 
   """
-  @spec query(Config.t(), map()) :: {:ok, map()} | {:error, term()}
+  @spec query(Config.t(), map()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def query(%Config{} = config, query_body) do
     Client.post(config, "/dashboards/cyberattacks", query_body)
   end
@@ -49,10 +50,11 @@ defmodule Feedly.API.ThreatIntel.Cyberattacks do
         ]
       }
 
-      {:ok, stats} = Feedly.API.ThreatIntel.Cyberattacks.statistics(client, query)
+      {:ok, stats, _rate} = Feedly.API.ThreatIntel.Cyberattacks.statistics(client, query)
 
   """
-  @spec statistics(Config.t(), map()) :: {:ok, map()} | {:error, term()}
+  @spec statistics(Config.t(), map()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def statistics(%Config{} = config, query_body) do
     Client.post(config, "/dashboards/cyberattacks/statistics", query_body)
   end
@@ -62,10 +64,11 @@ defmodule Feedly.API.ThreatIntel.Cyberattacks do
 
   ## Examples
 
-      {:ok, attack} = Feedly.API.ThreatIntel.Cyberattacks.get(client, "attack_id")
+      {:ok, attack, _rate} = Feedly.API.ThreatIntel.Cyberattacks.get(client, "attack_id")
 
   """
-  @spec get(Config.t(), String.t()) :: {:ok, map()} | {:error, term()}
+  @spec get(Config.t(), String.t()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def get(%Config{} = config, attack_id) do
     Client.get(config, "/dashboards/cyberattacks/#{Client.encode_path(attack_id)}")
   end

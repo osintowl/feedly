@@ -10,10 +10,11 @@ defmodule Feedly.API.ThreatIntel.TTPs do
 
   ## Examples
 
-      {:ok, ttps} = Feedly.API.ThreatIntel.TTPs.list(client)
+      {:ok, ttps, _rate} = Feedly.API.ThreatIntel.TTPs.list(client)
 
   """
-  @spec list(Config.t()) :: {:ok, list(map())} | {:error, term()}
+  @spec list(Config.t()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def list(%Config{} = config) do
     Client.get(config, "/dashboards/ttps")
   end
@@ -29,12 +30,13 @@ defmodule Feedly.API.ThreatIntel.TTPs do
 
   ## Examples
 
-      {:ok, procedures} = Feedly.API.ThreatIntel.TTPs.procedures(client,
+      {:ok, procedures, _rate} = Feedly.API.ThreatIntel.TTPs.procedures(client,
         ttp_id: "nlp/f/entity/gz:mi:attack-pattern-..."
       )
 
   """
-  @spec procedures(Config.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec procedures(Config.t(), keyword()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def procedures(%Config{} = config, opts) do
     ttp_id = Keyword.fetch!(opts, :ttp_id)
 

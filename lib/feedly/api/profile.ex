@@ -10,10 +10,11 @@ defmodule Feedly.API.Profile do
 
   ## Examples
 
-      {:ok, profile} = Feedly.API.Profile.get(client)
+      {:ok, profile, _rate} = Feedly.API.Profile.get(client)
 
   """
-  @spec get(Config.t()) :: {:ok, map()} | {:error, term()}
+  @spec get(Config.t()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def get(%Config{} = config) do
     Client.get(config, "/profile")
   end

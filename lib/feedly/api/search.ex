@@ -42,11 +42,13 @@ defmodule Feedly.API.Search do
         ]
       }
 
-      {:ok, results} = Feedly.API.Search.query(client, query, count: 50)
+      {:ok, results, _rate} = Feedly.API.Search.query(client, query, count: 50)
 
   """
   @spec query(Config.t(), map(), keyword()) ::
-          {:ok, %{items: list(Article.t()), continuation: String.t() | nil}} | {:error, term()}
+          {:ok, %{items: list(Article.t()), continuation: String.t() | nil},
+           Feedly.RateLimiter.rate_info() | nil}
+          | {:error, Feedly.Error.t()}
   def query(%Config{} = config, query_body, opts \\ []) do
     params = %{
       count: Keyword.get(opts, :count, 10),
@@ -81,7 +83,8 @@ defmodule Feedly.API.Search do
         params
       end
 
-    with {:ok, response} <- Client.post(config, "/search/contents", query_body, params: params) do
+    with {:ok, response, rate_info} <-
+           Client.post(config, "/search/contents", query_body, params: params) do
       items =
         response
         |> Map.get("items", [])
@@ -93,7 +96,7 @@ defmodule Feedly.API.Search do
          continuation: Map.get(response, "continuation"),
          id: Map.get(response, "id"),
          updated: Map.get(response, "updated")
-       }}
+       }, rate_info}
     end
   end
 

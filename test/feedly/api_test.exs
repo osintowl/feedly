@@ -37,7 +37,8 @@ defmodule Feedly.APITest do
       ok(request, %{"email" => "ada@example.com", "fullName" => "Ada"})
     end
 
-    assert {:ok, %{"email" => "ada@example.com", "fullName" => "Ada"}} =
+    assert {:ok, %{"email" => "ada@example.com", "fullName" => "Ada"},
+            %{count: 10, limit: 100_000, reset_in: 100}} =
              Feedly.API.Profile.get(client(adapter))
   end
 
@@ -63,7 +64,7 @@ defmodule Feedly.APITest do
       })
     end
 
-    assert {:ok, %{items: [%Article{id: "entry-1", title: "Patch Tuesday"}]}} =
+    assert {:ok, %{items: [%Article{id: "entry-1", title: "Patch Tuesday"}]}, _rate} =
              Feedly.API.Streams.get_contents(client(adapter), stream_id: stream_id, count: 5)
   end
 
@@ -75,10 +76,10 @@ defmodule Feedly.APITest do
 
     feedly = client(adapter)
 
-    assert {:ok, %{"id" => "CVE-2024-1234"}} =
+    assert {:ok, %{"id" => "CVE-2024-1234"}, _rate} =
              Feedly.API.ThreatIntel.CVEs.get(feedly, "CVE-2024-1234")
 
-    assert {:ok, %{"id" => "CVE-2024-1234"}} =
+    assert {:ok, %{"id" => "CVE-2024-1234"}, _rate} =
              Feedly.API.ThreatIntel.CVEs.get(feedly, "vulnerability/m/entity/CVE-2024-1234")
   end
 
@@ -144,7 +145,7 @@ defmodule Feedly.APITest do
       ok(request, [%{"id" => "enterprise/team/tag/board-1", "label" => "Watch"}])
     end
 
-    assert {:ok, [%{"label" => "Watch"}]} = Feedly.API.Boards.list(client(adapter))
+    assert {:ok, [%{"label" => "Watch"}], _rate} = Feedly.API.Boards.list(client(adapter))
   end
 
   test "adds and removes articles with the documented board paths" do
@@ -166,8 +167,8 @@ defmodule Feedly.APITest do
     end
 
     feedly = client(adapter)
-    assert {:ok, %{}} = Feedly.API.Boards.add_articles(feedly, board_id, ["entry-1"])
-    assert {:ok, %{}} = Feedly.API.Boards.delete_article(feedly, board_id, "entry-1")
+    assert {:ok, %{}, _rate} = Feedly.API.Boards.add_articles(feedly, board_id, ["entry-1"])
+    assert {:ok, %{}, _rate} = Feedly.API.Boards.delete_article(feedly, board_id, "entry-1")
   end
 
   test "extracts indicators from raw articles and article structs" do

@@ -13,10 +13,11 @@ defmodule Feedly.API.Boards do
 
   ## Examples
 
-      {:ok, boards} = Feedly.API.Boards.list(client)
+      {:ok, boards, _rate} = Feedly.API.Boards.list(client)
 
   """
-  @spec list(Config.t()) :: {:ok, list(map())} | {:error, term()}
+  @spec list(Config.t()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def list(%Config{} = config) do
     Client.get(config, "/enterprise/tags")
   end
@@ -26,10 +27,11 @@ defmodule Feedly.API.Boards do
 
   ## Examples
 
-      {:ok, _} = Feedly.API.Boards.add_articles(client, "board_id", ["entry_id_1", "entry_id_2"])
+      {:ok, _, _rate} = Feedly.API.Boards.add_articles(client, "board_id", ["entry_id_1", "entry_id_2"])
 
   """
-  @spec add_articles(Config.t(), String.t(), list(String.t())) :: {:ok, term()} | {:error, term()}
+  @spec add_articles(Config.t(), String.t(), list(String.t())) ::
+          {:ok, term(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def add_articles(%Config{} = config, tag_id, entry_ids) when is_list(entry_ids) do
     body =
       case entry_ids do
@@ -45,10 +47,11 @@ defmodule Feedly.API.Boards do
 
   ## Examples
 
-      {:ok, _} = Feedly.API.Boards.delete_article(client, "board_id", "entry_id")
+      {:ok, _, _rate} = Feedly.API.Boards.delete_article(client, "board_id", "entry_id")
 
   """
-  @spec delete_article(Config.t(), String.t(), String.t()) :: {:ok, term()} | {:error, term()}
+  @spec delete_article(Config.t(), String.t(), String.t()) ::
+          {:ok, term(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def delete_article(%Config{} = config, tag_id, entry_id) do
     Client.delete(config, "/tags/#{Client.encode_path(tag_id)}/#{Client.encode_path(entry_id)}")
   end

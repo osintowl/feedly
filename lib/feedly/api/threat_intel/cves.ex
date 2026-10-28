@@ -15,10 +15,11 @@ defmodule Feedly.API.ThreatIntel.CVEs do
 
   ## Examples
 
-      {:ok, cves} = Feedly.API.ThreatIntel.CVEs.trending(client)
+      {:ok, cves, _rate} = Feedly.API.ThreatIntel.CVEs.trending(client)
 
   """
-  @spec trending(Config.t(), keyword()) :: {:ok, list(map())} | {:error, term()}
+  @spec trending(Config.t(), keyword()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def trending(%Config{} = config, opts \\ []) do
     params = %{
       count: Keyword.get(opts, :count, 20)
@@ -39,10 +40,11 @@ defmodule Feedly.API.ThreatIntel.CVEs do
 
   ## Examples
 
-      {:ok, cve} = Feedly.API.ThreatIntel.CVEs.get(client, "CVE-2024-1234")
+      {:ok, cve, _rate} = Feedly.API.ThreatIntel.CVEs.get(client, "CVE-2024-1234")
 
   """
-  @spec get(Config.t(), String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec get(Config.t(), String.t(), keyword()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def get(%Config{} = config, cve_id, opts \\ []) do
     entity_id = build_entity_id(cve_id)
 
@@ -63,10 +65,11 @@ defmodule Feedly.API.ThreatIntel.CVEs do
 
   ## Examples
 
-      {:ok, cves} = Feedly.API.ThreatIntel.CVEs.get_multiple(client, ["CVE-2024-1234", "CVE-2024-5678"])
+      {:ok, cves, _rate} = Feedly.API.ThreatIntel.CVEs.get_multiple(client, ["CVE-2024-1234", "CVE-2024-5678"])
 
   """
-  @spec get_multiple(Config.t(), list(String.t())) :: {:ok, list(map())} | {:error, term()}
+  @spec get_multiple(Config.t(), list(String.t())) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def get_multiple(%Config{} = config, cve_ids) when is_list(cve_ids) do
     entity_ids = Enum.map(cve_ids, &build_entity_id/1)
     Client.post(config, "/entities/.mget", entity_ids)
@@ -77,10 +80,11 @@ defmodule Feedly.API.ThreatIntel.CVEs do
 
   ## Examples
 
-      {:ok, timeline} = Feedly.API.ThreatIntel.CVEs.timeline(client, "CVE-2024-1234")
+      {:ok, timeline, _rate} = Feedly.API.ThreatIntel.CVEs.timeline(client, "CVE-2024-1234")
 
   """
-  @spec timeline(Config.t(), String.t()) :: {:ok, list(map())} | {:error, term()}
+  @spec timeline(Config.t(), String.t()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def timeline(%Config{} = config, cve_id) do
     entity_id = build_entity_id(cve_id)
     Client.get(config, "/entities/#{Client.encode_path(entity_id)}/timeline")
@@ -113,10 +117,11 @@ defmodule Feedly.API.ThreatIntel.CVEs do
         count: 50
       }
 
-      {:ok, results} = Feedly.API.ThreatIntel.CVEs.query_agent(client, query)
+      {:ok, results, _rate} = Feedly.API.ThreatIntel.CVEs.query_agent(client, query)
 
   """
-  @spec query_agent(Config.t(), map()) :: {:ok, map()} | {:error, term()}
+  @spec query_agent(Config.t(), map()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def query_agent(%Config{} = config, query_body) do
     Client.post(config, "/dashboards/vulnerability", query_body)
   end

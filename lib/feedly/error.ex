@@ -3,7 +3,7 @@ defmodule Feedly.Error do
   Error types for the Feedly client.
   """
 
-  defexception [:type, :message, :status_code, :error_id, :request_id, :details]
+  defexception [:type, :message, :status_code, :error_id, :request_id, :details, :rate_info]
 
   @type t :: %__MODULE__{
           type: error_type(),
@@ -11,7 +11,8 @@ defmodule Feedly.Error do
           status_code: integer() | nil,
           error_id: String.t() | nil,
           request_id: String.t() | nil,
-          details: map() | nil
+          details: map() | nil,
+          rate_info: Feedly.RateLimiter.rate_info() | nil
         }
 
   @type error_type ::
@@ -66,7 +67,8 @@ defmodule Feedly.Error do
       status_code: opts[:status_code],
       error_id: opts[:error_id],
       request_id: opts[:request_id],
-      details: opts[:details]
+      details: opts[:details],
+      rate_info: opts[:rate_info]
     }
   end
 

@@ -20,14 +20,16 @@ defmodule Feedly.API.Streams do
 
   ## Examples
 
-      {:ok, result} = Feedly.API.Streams.get_contents(client, 
+      {:ok, result, _rate} = Feedly.API.Streams.get_contents(client, 
         stream_id: "enterprise/feedly/category/...",
         count: 50
       )
 
   """
   @spec get_contents(Config.t(), keyword()) ::
-          {:ok, %{items: list(Article.t()), continuation: String.t() | nil}} | {:error, term()}
+          {:ok, %{items: list(Article.t()), continuation: String.t() | nil},
+           Feedly.RateLimiter.rate_info() | nil}
+          | {:error, Feedly.Error.t()}
   def get_contents(%Config{} = config, opts) do
     stream_id = Keyword.fetch!(opts, :stream_id)
 
@@ -39,7 +41,7 @@ defmodule Feedly.API.Streams do
       |> Map.put(:includeAiActions, Keyword.get(opts, :include_ai_actions, true))
       |> Map.put(:similar, Keyword.get(opts, :similar, true))
 
-    with {:ok, response} <- Client.get(config, "/streams/contents", params: params) do
+    with {:ok, response, rate_info} <- Client.get(config, "/streams/contents", params: params) do
       items =
         response
         |> Map.get("items", [])
@@ -51,7 +53,7 @@ defmodule Feedly.API.Streams do
          continuation: Map.get(response, "continuation"),
          id: Map.get(response, "id"),
          updated: Map.get(response, "updated")
-       }}
+       }, rate_info}
     end
   end
 

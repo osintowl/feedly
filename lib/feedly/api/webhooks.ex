@@ -10,10 +10,11 @@ defmodule Feedly.API.Webhooks do
 
   ## Examples
 
-      {:ok, webhooks} = Feedly.API.Webhooks.list(client)
+      {:ok, webhooks, _rate} = Feedly.API.Webhooks.list(client)
 
   """
-  @spec list(Config.t()) :: {:ok, list(map())} | {:error, term()}
+  @spec list(Config.t()) ::
+          {:ok, list(map()), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def list(%Config{} = config) do
     Client.get(config, "/webhooks")
   end
@@ -45,10 +46,11 @@ defmodule Feedly.API.Webhooks do
         streamId: "enterprise/feedly/tag/board-id"
       }
 
-      {:ok, _} = Feedly.API.Webhooks.create_or_update(client, webhook)
+      {:ok, _, _rate} = Feedly.API.Webhooks.create_or_update(client, webhook)
 
   """
-  @spec create_or_update(Config.t(), map()) :: {:ok, term()} | {:error, term()}
+  @spec create_or_update(Config.t(), map()) ::
+          {:ok, term(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def create_or_update(%Config{} = config, webhook) do
     Client.put(config, "/webhooks", webhook)
   end
@@ -58,10 +60,11 @@ defmodule Feedly.API.Webhooks do
 
   ## Examples
 
-      {:ok, _} = Feedly.API.Webhooks.delete(client, "webhook_id")
+      {:ok, _, _rate} = Feedly.API.Webhooks.delete(client, "webhook_id")
 
   """
-  @spec delete(Config.t(), String.t()) :: {:ok, term()} | {:error, term()}
+  @spec delete(Config.t(), String.t()) ::
+          {:ok, term(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def delete(%Config{} = config, webhook_id) do
     Client.delete(config, "/webhooks/#{Client.encode_path(webhook_id)}")
   end

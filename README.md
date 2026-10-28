@@ -18,7 +18,7 @@ Add `feedly` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:feedly, "~> 1.0"}
+    {:feedly, "~> 1.1"}
   ]
 end
 ```
@@ -29,10 +29,11 @@ end
 client = Feedly.client(token: System.fetch_env!("FEEDLY_TOKEN"))
 
 # Confirms the token. profile is the Feedly account map.
-{:ok, profile} = Feedly.API.Profile.get(client)
+{:ok, profile, rate} = Feedly.API.Profile.get(client)
+# rate is %{count: 10005, limit: 100000, reset_in: 1818103} or nil
 
 # Collect articles from a folder, board, or AI Feed.
-{:ok, %{items: articles}} =
+{:ok, %{items: articles}, _rate} =
   Feedly.API.Streams.get_contents(client,
     stream_id: "enterprise/your-team/category/your-stream-id",
     count: 50
@@ -45,7 +46,7 @@ query = %{
   ]
 }
 
-{:ok, %{items: results}} = Feedly.API.Search.query(client, query, count: 100)
+{:ok, %{items: results}, _rate} = Feedly.API.Search.query(client, query, count: 100)
 
 Feedly.API.Streams.stream_all(client, stream_id: "enterprise/your-team/category/your-stream-id")
 |> Stream.take(1000)
@@ -58,10 +59,10 @@ Feedly.API.Streams.stream_all(client, stream_id: "enterprise/your-team/category/
 
 ```elixir
 # Get trending CVEs
-{:ok, cves} = Feedly.API.ThreatIntel.CVEs.trending(client)
+{:ok, cves, _rate} = Feedly.API.ThreatIntel.CVEs.trending(client)
 
 # Get detailed CVE metadata
-{:ok, cve} = Feedly.API.ThreatIntel.CVEs.get(client, "CVE-2024-1234")
+{:ok, cve, _rate} = Feedly.API.ThreatIntel.CVEs.get(client, "CVE-2024-1234")
 
 # Query the Vulnerability Agent
 query = %{
@@ -72,39 +73,39 @@ query = %{
   count: 50
 }
 
-{:ok, results} = Feedly.API.ThreatIntel.CVEs.query_agent(client, query)
+{:ok, results, _rate} = Feedly.API.ThreatIntel.CVEs.query_agent(client, query)
 ```
 
 ### Threat Actors
 
 ```elixir
 # Get trending threat actors
-{:ok, actors} = Feedly.API.ThreatIntel.ThreatActors.trending(client)
+{:ok, actors, _rate} = Feedly.API.ThreatIntel.ThreatActors.trending(client)
 
 # Get threat actor details
-{:ok, actor} = Feedly.API.ThreatIntel.ThreatActors.get(client, 
+{:ok, actor, _rate} = Feedly.API.ThreatIntel.ThreatActors.get(client, 
   "gz:ta:68391641-859f-4a9a-9a1e-3e5cf71ec376"
 )
 
 # Get relationships (IoCs, TTPs, etc.)
-{:ok, relationships} = Feedly.API.ThreatIntel.ThreatActors.relationships(client, actor_id)
+{:ok, relationships, _rate} = Feedly.API.ThreatIntel.ThreatActors.relationships(client, actor_id)
 ```
 
 ### Malware Families
 
 ```elixir
 # Get trending malware
-{:ok, malware} = Feedly.API.ThreatIntel.Malware.trending(client)
+{:ok, malware, _rate} = Feedly.API.ThreatIntel.Malware.trending(client)
 
 # Get detection rules
-{:ok, rules} = Feedly.API.ThreatIntel.Malware.detection_rules(client, malware_id)
+{:ok, rules, _rate} = Feedly.API.ThreatIntel.Malware.detection_rules(client, malware_id)
 ```
 
 ### Indicators of Compromise (IoCs)
 
 ```elixir
 # Collect IoCs from a stream
-{:ok, result} = Feedly.API.ThreatIntel.IoCs.collect(client,
+{:ok, result, _rate} = Feedly.API.ThreatIntel.IoCs.collect(client,
   stream_id: "enterprise/feedly/category/threat-feed",
   count: 100
 )
@@ -117,16 +118,16 @@ iocs = Feedly.API.ThreatIntel.IoCs.extract_from_articles(result["items"])
 
 ```elixir
 # List all boards
-{:ok, boards} = Feedly.API.Boards.list(client)
+{:ok, boards, _rate} = Feedly.API.Boards.list(client)
 
 # Add articles to a board
-{:ok, _} = Feedly.API.Boards.add_articles(client, "board_id", ["entry_id_1", "entry_id_2"])
+{:ok, _, _rate} = Feedly.API.Boards.add_articles(client, "board_id", ["entry_id_1", "entry_id_2"])
 
 # List folders
-{:ok, folders} = Feedly.API.Folders.list(client)
+{:ok, folders, _rate} = Feedly.API.Folders.list(client)
 
 # Get AI Feeds
-{:ok, %{"enterpriseAlerts" => alerts}} = Feedly.API.AIFeeds.list(client)
+{:ok, %{"enterpriseAlerts" => alerts}, _rate} = Feedly.API.AIFeeds.list(client)
 ```
 
 ## Webhooks
@@ -140,13 +141,13 @@ webhook = %{
   streamId: "enterprise/feedly/tag/board-id"
 }
 
-{:ok, _} = Feedly.API.Webhooks.create_or_update(client, webhook)
+{:ok, _, _rate} = Feedly.API.Webhooks.create_or_update(client, webhook)
 
 # List webhooks
-{:ok, webhooks} = Feedly.API.Webhooks.list(client)
+{:ok, webhooks, _rate} = Feedly.API.Webhooks.list(client)
 
 # Delete webhook
-{:ok, _} = Feedly.API.Webhooks.delete(client, "webhook_id")
+{:ok, _, _rate} = Feedly.API.Webhooks.delete(client, "webhook_id")
 ```
 
 ## API Modules
@@ -184,15 +185,26 @@ client = Feedly.client(
 )
 ```
 
-## Rate Limits
+## Rate limits
 
-Feedly API has a limit of 100,000 requests per month. The client automatically:
-- Tracks rate limit usage via response headers
-- Logs warnings when approaching limits (>90%)
-- Provides rate limit information in headers:
-  - `X-RateLimit-Count` - Current usage
-  - `X-RateLimit-Limit` - Total limit
-  - `X-RateLimit-Reset` - Seconds until reset
+Every successful call returns `{:ok, body, rate}`:
+
+```elixir
+{:ok, _profile, rate} = Feedly.API.Profile.get(client)
+
+rate.count
+# requests used in this period
+
+rate.limit
+# monthly cap
+
+rate.reset_in
+# seconds until the counter resets
+```
+
+`rate` is `%{count: integer, limit: integer, reset_in: integer}`, or `nil` when the response has no `x-ratelimit-count`, `x-ratelimit-limit`, and `x-ratelimit-reset` headers. The client logs a warning once usage passes 90%. On an error, the same map is `error.rate_info`.
+
+`Feedly.RateLimiter.parse_headers/1` builds that map from a raw header map. Req returns header values as lists, and `parse_headers/1` accepts either form.
 
 ## Error Handling
 
@@ -200,14 +212,14 @@ The client provides structured error types:
 
 ```elixir
 case Feedly.API.Streams.get_contents(client, stream_id: "invalid") do
-  {:ok, result} -> 
+  {:ok, result, _rate} -> 
     # Process result
     
   {:error, %Feedly.Error{type: :unauthorized}} ->
     # Handle auth error
     
-  {:error, %Feedly.Error{type: :rate_limited, details: details}} ->
-    # Handle rate limit
+  {:error, %Feedly.Error{type: :rate_limited, rate_info: rate}} ->
+    # rate.count, rate.limit, and rate.reset_in are still available
     
   {:error, error} ->
     # Handle other errors

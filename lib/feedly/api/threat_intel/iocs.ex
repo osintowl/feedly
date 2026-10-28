@@ -18,13 +18,14 @@ defmodule Feedly.API.ThreatIntel.IoCs do
 
   ## Examples
 
-      {:ok, result} = Feedly.API.ThreatIntel.IoCs.collect(client,
+      {:ok, result, _rate} = Feedly.API.ThreatIntel.IoCs.collect(client,
         stream_id: "enterprise/feedly/category/...",
         count: 50
       )
 
   """
-  @spec collect(Config.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec collect(Config.t(), keyword()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def collect(%Config{} = config, opts) do
     stream_id = Keyword.fetch!(opts, :stream_id)
 
@@ -46,10 +47,11 @@ defmodule Feedly.API.ThreatIntel.IoCs do
 
   ## Examples
 
-      {:ok, ioc} = Feedly.API.ThreatIntel.IoCs.get(client, "ioc_id")
+      {:ok, ioc, _rate} = Feedly.API.ThreatIntel.IoCs.get(client, "ioc_id")
 
   """
-  @spec get(Config.t(), String.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec get(Config.t(), String.t(), keyword()) ::
+          {:ok, map(), Feedly.RateLimiter.rate_info() | nil} | {:error, Feedly.Error.t()}
   def get(%Config{} = config, ioc_id, opts \\ []) do
     params = %{}
 
